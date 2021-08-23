@@ -58,3 +58,10 @@ func (cfg *Config) socketEndpoint() string {
 	}
 	return fmt.Sprintf("ws://%s:%v", cfg.Hostname, cfg.Port)
 }
+
+func (cfg *Config) httpEndpoint() string {
+	if cfg.SSL {
+		return fmt.Sprintf("https://%s:%v", cfg.Hostname, cfg.Port)
+	}
+	return fmt.Sprintf("http://%s:%v", cfg.Hostname, cfg.Port)
+}
