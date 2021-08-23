@@ -308,7 +308,7 @@ func (n *Node) OnVoiceStateUpdate(sess *discordgo.Session, evt *discordgo.VoiceS
 	if n.sess.State.User.ID != sess.State.User.ID {
 		return
 	}
-	n.voiceStates.LoadOrStore(evt.GuildID, evt.VoiceState)
+	n.voiceStates.Store(evt.GuildID, evt.VoiceState)
 }
 
 func (n *Node) OnVoiceServerUpdate(sess *discordgo.Session, evt *discordgo.VoiceServerUpdate) {
