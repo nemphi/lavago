@@ -239,7 +239,7 @@ func (n *Node) Search(stype SearchType, query string) (*SearchResult, error) {
 	default:
 		urlPath = "/loadtracks?identifier=" + query
 	}
-	req, err := http.NewRequest("GET", n.cfg.httpEndpoint(), nil)
+	req, err := http.NewRequest("GET", n.cfg.httpEndpoint()+urlPath, nil)
 	if err != nil {
 		return nil, err
 	}
