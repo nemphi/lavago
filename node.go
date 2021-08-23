@@ -186,11 +186,7 @@ func (n *Node) Join(guildID, voiceChannelID string) (*Player, error) {
 		return playerI.(*Player), nil
 	}
 
-	vc, err := n.sess.ChannelVoiceJoin(guildID, voiceChannelID, false, n.cfg.SelfDeaf)
-	if err != nil {
-		return nil, err
-	}
-	p := NewPlayer(n.socket, vc)
+	p := NewPlayer(n.socket, guildID)
 	n.players.Store(guildID, p)
 	return p, nil
 }

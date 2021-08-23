@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/emirpasic/gods/lists"
 	"github.com/emirpasic/gods/lists/arraylist"
 )
@@ -53,7 +52,7 @@ type Player struct {
 	// Current track that is playing.
 	Track *Track
 	// Voice channel this player is connected to.
-	VoiceChannel *discordgo.VoiceConnection
+	GuildID string
 	// Player's current volume.
 	Volume int
 
@@ -62,11 +61,11 @@ type Player struct {
 }
 
 // Creates a new player
-func NewPlayer(socket *Socket, vc *discordgo.VoiceConnection) *Player {
+func NewPlayer(socket *Socket, guildID string) *Player {
 	return &Player{
-		Queue:        arraylist.New(),
-		VoiceChannel: vc,
-		socket:       socket,
+		Queue:   arraylist.New(),
+		GuildID: guildID,
+		socket:  socket,
 	}
 }
 
@@ -74,7 +73,7 @@ func (p *Player) Close() error {
 	p.Stop()
 	data, err := json.Marshal(playerDestroyPayload{
 		Op:      "destroy",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 	})
 	if err != nil {
 		return err
@@ -82,9 +81,7 @@ func (p *Player) Close() error {
 	p.Lock()
 	err = p.socket.Send(data)
 	p.Queue.Clear()
-	p.VoiceChannel.Disconnect()
 	p.Track = nil
-	p.VoiceChannel = nil
 	p.State = PlayerStateNone
 	p.Unlock()
 	return err
@@ -114,7 +111,7 @@ func (p *Player) Play(args PlayArgs) error {
 	p.Unlock()
 	data, err := json.Marshal(playerPlayPayload{
 		Op:        "play",
-		GuildID:   p.VoiceChannel.GuildID,
+		GuildID:   p.GuildID,
 		Hash:      args.Track.Hash,
 		NoReplace: args.NoReplace,
 		StartTime: args.StartTime,
@@ -139,7 +136,7 @@ func (p *Player) PlayTrack(track *Track) error {
 	p.Unlock()
 	data, err := json.Marshal(playerPlayPayload{
 		Op:      "play",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 		Hash:    track.Hash,
 		Volume:  100,
 		Pause:   false,
@@ -157,7 +154,7 @@ func (p *Player) Stop() error {
 	p.Unlock()
 	data, err := json.Marshal(playerStopPayload{
 		Op:      "stop",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 	})
 	if err != nil {
 		return err
@@ -179,7 +176,7 @@ func (p *Player) Pause() error {
 	p.Unlock()
 	data, err := json.Marshal(playerPausePayload{
 		Op:      "pause",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 		Pause:   true,
 	})
 	if err != nil {
@@ -202,7 +199,7 @@ func (p *Player) Resume() error {
 	p.Unlock()
 	data, err := json.Marshal(playerPausePayload{
 		Op:      "pause",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 		Pause:   false,
 	})
 	if err != nil {
@@ -242,7 +239,7 @@ func (p *Player) Seek(position time.Duration) error {
 	}
 	data, err := json.Marshal(playerSeekPayload{
 		Op:       "seek",
-		GuildID:  p.VoiceChannel.GuildID,
+		GuildID:  p.GuildID,
 		Position: position,
 	})
 	if err != nil {
@@ -258,7 +255,7 @@ func (p *Player) UpdateVolume(volume int) error {
 	p.Unlock()
 	data, err := json.Marshal(playerVolumePayload{
 		Op:      "volume",
-		GuildID: p.VoiceChannel.GuildID,
+		GuildID: p.GuildID,
 		Volume:  volume,
 	})
 	if err != nil {
