@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -219,6 +220,43 @@ func (n *Node) GetPlayer(guildID string) *Player {
 		return nil
 	}
 	return p.(*Player)
+}
+
+func (n *Node) Search(stype SearchType, query string) (*SearchResult, error) {
+	if query == "" {
+		return nil, errors.New("can't search with empty query string")
+	}
+	urlPath := ""
+	switch stype {
+	case SoundCloud:
+		urlPath = "/loadtracks?identifier=scsearch:" + url.QueryEscape(query)
+	case YouTubeMusic:
+		urlPath = "/loadtracks?identifier=ytmsearch:" + url.QueryEscape(query)
+	case YouTube:
+		urlPath = "/loadtracks?identifier=ytsearch:" + url.QueryEscape(query)
+	case Direct:
+		urlPath = "/loadtracks?identifier=" + query
+	default:
+		urlPath = "/loadtracks?identifier=" + query
+	}
+	req, err := http.NewRequest("GET", n.cfg.httpEndpoint(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", n.cfg.Authorization)
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	sr := &SearchResult{}
+	err = json.NewDecoder(res.Body).Decode(sr)
+	if err != nil {
+		return nil, err
+	}
+	return sr, nil
 }
 
 func (n *Node) DataReceived(data []byte) {
