@@ -63,7 +63,7 @@ func (s *Socket) Connect(headers http.Header) error {
 		}
 		return err
 	}
-	lverS := res.Header.Get("Lavalink-Major-Version")
+	lverS := res.Header.Get("Lavalink-Api-Version")
 	lver, err := strconv.Atoi(lverS)
 	if err != nil {
 		return err
