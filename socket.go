@@ -88,13 +88,15 @@ func (s *Socket) sendListener() {
 func (s *Socket) readListener() {
 	for {
 		msgType, data, err := s.conn.ReadMessage()
-		if msgType != websocket.CloseMessage {
+		if msgType == websocket.CloseMessage {
 			return
 		}
 		if err != nil {
 			go s.ErrorReceived(err)
 		}
-		go s.DataReceived(data)
+		if msgType == websocket.TextMessage {
+			go s.DataReceived(data)
+		}
 	}
 }
 
