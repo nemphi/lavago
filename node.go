@@ -8,8 +8,6 @@ import (
 	"net/url"
 	"sync"
 	"time"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 // Contains information about track position.
@@ -111,14 +109,19 @@ type WebSocketClosedEvent struct {
 	ByRemote bool `json:"by_remote,omitempty"`
 }
 
+type voiceState struct {
+	GuildID   string
+	SessionID string
+}
+
 type Node struct {
 	cfg         *Config
-	sess        *discordgo.Session
 	socket      *Socket
 	connected   bool
 	players     *sync.Map // map[string(GuildID)]*Player
-	voiceStates *sync.Map // map[string(GuildID)]*discordgo.VoiceState
+	voiceStates *sync.Map // map[string(GuildID)]voiceState
 
+	ConnectVoice    func(guildID, channelID string, deaf bool) error
 	PlayerUpdated   func(PlayerUpdatedEvent)
 	StatsReceived   func(StatsReceivedEvent)
 	TrackStarted    func(TrackStartedEvent)
@@ -128,29 +131,23 @@ type Node struct {
 	WebSocketClosed func(WebSocketClosedEvent)
 }
 
-func NewNode(sess *discordgo.Session, cfg *Config) (*Node, error) {
-	if sess == nil {
-		return nil, errors.New("can't create node with nil *discordgo.Session")
-	}
+func NewNode(cfg *Config) (*Node, error) {
 	n := &Node{
 		cfg:         cfg,
-		sess:        sess,
 		socket:      NewSocket(cfg),
 		players:     &sync.Map{},
 		voiceStates: &sync.Map{},
 	}
-	sess.AddHandler(n.onVoiceStateUpdate)
-	sess.AddHandler(n.onVoiceServerUpdate)
 	n.socket.DataReceived = n.socketDataReceived
 	n.socket.ErrorReceived = n.socketOnError
 	n.socket.OnOpen = n.socketOnOpen
 	return n, nil
 }
 
-func (n *Node) Connect() error {
+func (n *Node) Connect(userID, shardCount string) error {
 	headers := http.Header{}
-	headers.Add("User-Id", n.sess.State.User.ID)
-	headers.Add("Num-Shards", fmt.Sprint(n.sess.ShardCount))
+	headers.Add("User-Id", userID)
+	headers.Add("Num-Shards", shardCount)
 	headers.Add("Authorization", n.cfg.Authorization)
 	if n.cfg.EnableResume {
 		headers.Add("Resume-Key", n.cfg.ResumeKey)
@@ -188,9 +185,11 @@ func (n *Node) Join(guildID, voiceChannelID string) (*Player, error) {
 		return playerI.(*Player), nil
 	}
 
-	err := n.sess.ChannelVoiceJoinManual(guildID, voiceChannelID, false, n.cfg.SelfDeaf)
-	if err != nil {
-		return nil, err
+	if n.ConnectVoice != nil {
+		err := n.ConnectVoice(guildID, voiceChannelID, n.cfg.SelfDeaf)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	p := NewPlayer(n.socket, guildID)
@@ -390,26 +389,26 @@ func (n *Node) socketDataReceived(data []byte) {
 	}
 }
 
-func (n *Node) onVoiceStateUpdate(sess *discordgo.Session, evt *discordgo.VoiceStateUpdate) {
-	if n.sess.State.User.ID != sess.State.User.ID {
+func (n *Node) OnVoiceStateUpdate(shardUserID, triggerUserID, guildID, sessionID string) {
+	if shardUserID != triggerUserID {
 		return
 	}
-	n.voiceStates.Store(evt.GuildID, evt.VoiceState)
+	n.voiceStates.Store(guildID, voiceState{GuildID: guildID, SessionID: sessionID})
 }
 
-func (n *Node) onVoiceServerUpdate(sess *discordgo.Session, evt *discordgo.VoiceServerUpdate) {
-	vsI, exists := n.voiceStates.Load(evt.GuildID)
+func (n *Node) OnVoiceServerUpdate(guildID, endpoint, token string) {
+	vsI, exists := n.voiceStates.Load(guildID)
 	if !exists {
 		return
 	}
-	vs := vsI.(*discordgo.VoiceState)
+	vs := vsI.(voiceState)
 	sp := &serverUpdatePayload{
 		Op:        "voiceUpdate",
 		GuildID:   vs.GuildID,
 		SessionID: vs.SessionID,
 		Event: voiceServerPayload{
-			Endpoint: evt.Endpoint,
-			Token:    evt.Token,
+			Endpoint: endpoint,
+			Token:    token,
 		},
 	}
 	data, err := json.Marshal(sp)
