@@ -7,6 +7,12 @@ type basePayload struct {
 	GuildID string `json:"guildId,omitempty"`
 }
 
+type resumePayload struct {
+	Op      string `json:"op,omitempty"`
+	Key     string `json:"key,omitempty"`
+	Timeout int    `json:"timeout,omitempty"`
+}
+
 type serverUpdatePayload struct {
 	Op        string             `json:"op,omitempty"`
 	GuildID   string             `json:"guildId,omitempty"`

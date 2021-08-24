@@ -21,6 +21,7 @@ type Socket struct {
 	connected          bool
 	sendChan           chan wsData
 	DataReceived       func([]byte)
+	OnOpen             func()
 	ErrorReceived      func(error)
 	sync.RWMutex
 }

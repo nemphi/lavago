@@ -141,7 +141,8 @@ func NewNode(sess *discordgo.Session, cfg *Config) (*Node, error) {
 	}
 	sess.AddHandler(n.OnVoiceStateUpdate)
 	sess.AddHandler(n.OnVoiceServerUpdate)
-	n.socket.DataReceived = n.DataReceived
+	n.socket.DataReceived = n.socketDataReceived
+	n.socket.OnOpen = n.socketOnOpen
 	return n, nil
 }
 
@@ -260,7 +261,25 @@ func (n *Node) Search(stype SearchType, query string) (*SearchResult, error) {
 	return sr, nil
 }
 
-func (n *Node) DataReceived(data []byte) {
+func (n *Node) socketOnOpen() {
+	n.connected = true
+	if n.cfg.EnableResume {
+		data, err := json.Marshal(resumePayload{
+			Op:      "configureResuming",
+			Key:     n.cfg.ResumeKey,
+			Timeout: int(n.cfg.ResumeTimeout.Seconds()),
+		})
+		if err != nil {
+			panic("Could not marshal resume")
+		}
+		err = n.socket.Send(data)
+		if err != nil {
+			panic("Could not set resume")
+		}
+	}
+}
+
+func (n *Node) socketDataReceived(data []byte) {
 	if len(data) == 0 {
 		// TODO: Handle
 		// n.logger.LogError(...)
