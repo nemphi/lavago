@@ -19,7 +19,7 @@ type recvDataEventPayload struct {
 	Error       string `json:"error,omitempty"`
 	ThresholdMs int    `json:"thresholdMs,omitempty"`
 	Code        int    `json:"code,omitempty"`
-	ByRemote    bool   `json:"byRemote,omitempty"`
+	ByRemote    bool   `json:"byRemote"`
 }
 
 type basePayload struct {
@@ -53,7 +53,7 @@ type playerPlayPayload struct {
 	StartTime time.Duration `json:"startTime,omitempty"`
 	EndTime   time.Duration `json:"endTime,omitempty"`
 	Volume    int           `json:"volume,omitempty"`
-	Pause     bool          `json:"pause,omitempty"`
+	Pause     bool          `json:"pause"`
 }
 
 type playerStopPayload struct {
@@ -64,7 +64,7 @@ type playerStopPayload struct {
 type playerPausePayload struct {
 	Op      string `json:"op,omitempty"`
 	GuildID string `json:"guildId,omitempty"`
-	Pause   bool   `json:"pause,omitempty"`
+	Pause   bool   `json:"pause"`
 }
 
 type playerSeekPayload struct {
