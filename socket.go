@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/url"
+	"strconv"
 	"sync"
 	"time"
 
@@ -13,7 +13,6 @@ import (
 
 type Socket struct {
 	cfg                *Config
-	url                *url.URL
 	connectionAttempts int
 	reconnectInterval  time.Duration
 	dialer             *websocket.Dialer
@@ -32,7 +31,6 @@ type wsData struct {
 }
 
 func NewSocket(cfg *Config) *Socket {
-	url, _ := url.Parse(cfg.socketEndpoint())
 	s := &Socket{
 		cfg: cfg,
 		// reconnectInterval: cfg.ReconnectDelay, start at 0 because we add up duration everytime we call Connect(), ie. on each retry we += cfg.ReconnectDelay
@@ -42,7 +40,6 @@ func NewSocket(cfg *Config) *Socket {
 			Proxy:            http.ProxyFromEnvironment,
 			HandshakeTimeout: 45 * time.Second,
 		},
-		url:           url,
 		sendChan:      make(chan wsData),
 		DataReceived:  func(b []byte) {},
 		ErrorReceived: func(err error) {},
@@ -55,7 +52,7 @@ func (s *Socket) Connect(headers http.Header) error {
 	if s.conn != nil {
 		return errors.New("websocket is already in open state")
 	}
-	conn, _, err := s.dialer.Dial(s.url.String(), headers)
+	conn, res, err := s.dialer.Dial(s.cfg.socketEndpoint(), headers)
 	if err != nil {
 		if s.connectionAttempts < s.cfg.ReconnectAttempts {
 			s.connectionAttempts++
@@ -64,6 +61,14 @@ func (s *Socket) Connect(headers http.Header) error {
 			return s.Connect(headers)
 		}
 		return err
+	}
+	lverS := res.Header.Get("Lavalink-Major-Version")
+	lver, err := strconv.Atoi(lverS)
+	if err != nil {
+		return err
+	}
+	if lver != 3 {
+		return errors.New("this version of lavago only supports Lavalink v3.x")
 	}
 	s.conn = conn
 	s.connected = true
