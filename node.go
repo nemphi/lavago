@@ -375,10 +375,6 @@ func (n *Node) socketDataReceived(data []byte) {
 			}
 			n.TrackStuck(TrackStuckEvent{Player: p, Track: p.Track, Threshold: dur})
 		case webSocketClosedEvent:
-			p := n.GetPlayer(bp.GuildID)
-			if p == nil {
-				break
-			}
 			if n.WebSocketClosed == nil {
 				break
 			}
