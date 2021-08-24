@@ -142,6 +142,7 @@ func NewNode(sess *discordgo.Session, cfg *Config) (*Node, error) {
 	sess.AddHandler(n.onVoiceStateUpdate)
 	sess.AddHandler(n.onVoiceServerUpdate)
 	n.socket.DataReceived = n.socketDataReceived
+	n.socket.ErrorReceived = n.socketOnError
 	n.socket.OnOpen = n.socketOnOpen
 	return n, nil
 }
@@ -277,6 +278,11 @@ func (n *Node) socketOnOpen() {
 			panic("Could not set resume")
 		}
 	}
+}
+
+func (n *Node) socketOnError(err error) {
+	// TODO: make better
+	fmt.Println("ERR: " + err.Error())
 }
 
 func (n *Node) socketDataReceived(data []byte) {
