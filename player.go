@@ -112,7 +112,7 @@ func (p *Player) Play(args PlayArgs) error {
 	data, err := json.Marshal(playerPlayPayload{
 		Op:        "play",
 		GuildID:   p.GuildID,
-		Hash:      args.Track.Hash,
+		Track:     args.Track.Track,
 		NoReplace: args.NoReplace,
 		StartTime: args.StartTime,
 		EndTime:   args.EndTime,
@@ -137,7 +137,7 @@ func (p *Player) PlayTrack(track *Track) error {
 	data, err := json.Marshal(playerPlayPayload{
 		Op:      "play",
 		GuildID: p.GuildID,
-		Hash:    track.Hash,
+		Track:   track.Track,
 		Volume:  100,
 		Pause:   false,
 	})
@@ -234,8 +234,8 @@ func (p *Player) Seek(position time.Duration) error {
 	if p.State == PlayerStateNone {
 		return errors.New("player's current state is set to None. Please make sure Player is connected to a voice channel")
 	}
-	if position > p.Track.Length {
-		return fmt.Errorf("value must not be higer than %s", p.Track.Length.String())
+	if position > p.Track.Info.Length {
+		return fmt.Errorf("value must not be higer than %s", p.Track.Info.Length.String())
 	}
 	data, err := json.Marshal(playerSeekPayload{
 		Op:       "seek",

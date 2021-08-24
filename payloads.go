@@ -22,7 +22,7 @@ type voiceServerPayload struct {
 type playerPlayPayload struct {
 	Op        string        `json:"op,omitempty"`
 	GuildID   string        `json:"guildId,omitempty"`
-	Hash      string        `json:"track,omitempty"`
+	Track     string        `json:"track,omitempty"`
 	NoReplace bool          `json:"noReplace,omitempty"`
 	StartTime time.Duration `json:"startTime,omitempty"`
 	EndTime   time.Duration `json:"endTime,omitempty"`

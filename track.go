@@ -5,9 +5,13 @@ import "time"
 // Track information.
 type Track struct {
 	// Track's encoded hash.
-	Hash string `json:"hash,omitempty"`
+	Track string    `json:"track,omitempty"`
+	Info  TrackInfo `json:"info,omitempty"`
+}
+
+type TrackInfo struct {
 	// Audio / Video track Id.
-	ID string `json:"identifier,omitempty"`
+	Identifier string `json:"identifier,omitempty"`
 	// Track's author.
 	Author string `json:"author,omitempty"`
 	// Track's title.
@@ -25,5 +29,5 @@ type Track struct {
 }
 
 func (t *Track) updatePosition(pos time.Duration) {
-	t.Position = pos
+	t.Info.Position = pos
 }
