@@ -42,6 +42,7 @@ func NewSocket(cfg *Config) *Socket {
 		},
 		sendChan:      make(chan wsData),
 		DataReceived:  func(b []byte) {},
+		OnOpen:        func() {},
 		ErrorReceived: func(err error) {},
 	}
 
@@ -72,6 +73,7 @@ func (s *Socket) Connect(headers http.Header) error {
 	}
 	s.conn = conn
 	s.connected = true
+	s.OnOpen()
 	go s.sendListener()
 	go s.readListener()
 	return nil
