@@ -338,6 +338,9 @@ func (n *Node) socketDataReceived(data []byte) {
 			if p == nil {
 				break
 			}
+			p.Lock()
+			p.State = PlayerStatePlaying
+			p.Unlock()
 			if n.TrackStarted == nil {
 				break
 			}
@@ -347,6 +350,9 @@ func (n *Node) socketDataReceived(data []byte) {
 			if p == nil {
 				break
 			}
+			p.Lock()
+			p.State = PlayerStateStopped
+			p.Unlock()
 			if n.TrackEnded == nil {
 				break
 			}
@@ -356,6 +362,9 @@ func (n *Node) socketDataReceived(data []byte) {
 			if p == nil {
 				break
 			}
+			p.Lock()
+			p.State = PlayerStateStopped
+			p.Unlock()
 			if n.TrackException == nil {
 				break
 			}
@@ -365,6 +374,9 @@ func (n *Node) socketDataReceived(data []byte) {
 			if p == nil {
 				break
 			}
+			p.Lock()
+			p.State = PlayerStateStopped
+			p.Unlock()
 			if n.TrackStuck == nil {
 				break
 			}
