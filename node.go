@@ -139,8 +139,8 @@ func NewNode(sess *discordgo.Session, cfg *Config) (*Node, error) {
 		players:     &sync.Map{},
 		voiceStates: &sync.Map{},
 	}
-	sess.AddHandler(n.OnVoiceStateUpdate)
-	sess.AddHandler(n.OnVoiceServerUpdate)
+	sess.AddHandler(n.onVoiceStateUpdate)
+	sess.AddHandler(n.onVoiceServerUpdate)
 	n.socket.DataReceived = n.socketDataReceived
 	n.socket.OnOpen = n.socketOnOpen
 	return n, nil
@@ -300,6 +300,9 @@ func (n *Node) socketDataReceived(data []byte) {
 		if err != nil {
 			panic("*Node.DataReceived: json.Unmarshal 'stats' => " + err.Error())
 		}
+		if n.StatsReceived == nil {
+			break
+		}
 		n.StatsReceived(sr)
 	case "playerUpdate":
 		pu := PlayerUpdatedEvent{}
@@ -316,22 +319,83 @@ func (n *Node) socketDataReceived(data []byte) {
 		if n.PlayerUpdated == nil {
 			break
 		}
+		pu.Player = p
 		n.PlayerUpdated(pu)
 	case "event":
-		fmt.Printf("%s", data)
+		rp := recvDataEventPayload{}
+		err = json.Unmarshal(data, &rp)
+		if err != nil {
+			panic("*Node.DataReceived: json.Unmarshal 'event' => " + err.Error())
+		}
+		switch rp.Type {
+		case trackStartEvent:
+			p := n.GetPlayer(bp.GuildID)
+			if p == nil {
+				break
+			}
+			if n.TrackStarted == nil {
+				break
+			}
+			n.TrackStarted(TrackStartedEvent{Player: p, Track: p.Track})
+		case trackEndEvent:
+			p := n.GetPlayer(bp.GuildID)
+			if p == nil {
+				break
+			}
+			if n.TrackEnded == nil {
+				break
+			}
+			n.TrackEnded(TrackEndedEvent{Player: p, Track: p.Track, Reason: TrackEndReason(rp.Reason[0])})
+		case trackExceptionEvent:
+			p := n.GetPlayer(bp.GuildID)
+			if p == nil {
+				break
+			}
+			if n.TrackException == nil {
+				break
+			}
+			n.TrackException(TrackExceptionEvent{Player: p, Track: p.Track, ErrorMessage: rp.Error})
+		case trackStuckEvent:
+			p := n.GetPlayer(bp.GuildID)
+			if p == nil {
+				break
+			}
+			if n.TrackStuck == nil {
+				break
+			}
+			dur, err := time.ParseDuration(fmt.Sprintf("%vms", rp.ThresholdMs))
+			if err != nil {
+				panic("*Node.DataReceived: time.ParseDuration 'event' => " + err.Error())
+			}
+			n.TrackStuck(TrackStuckEvent{Player: p, Track: p.Track, Threshold: dur})
+		case webSocketClosedEvent:
+			p := n.GetPlayer(bp.GuildID)
+			if p == nil {
+				break
+			}
+			if n.WebSocketClosed == nil {
+				break
+			}
+			n.WebSocketClosed(WebSocketClosedEvent{
+				GuildID:  rp.GuildID,
+				Reason:   rp.Reason,
+				Code:     rp.Code,
+				ByRemote: rp.ByRemote,
+			})
+		}
 	default:
 		panic("*Node.DataReceived: switch.default")
 	}
 }
 
-func (n *Node) OnVoiceStateUpdate(sess *discordgo.Session, evt *discordgo.VoiceStateUpdate) {
+func (n *Node) onVoiceStateUpdate(sess *discordgo.Session, evt *discordgo.VoiceStateUpdate) {
 	if n.sess.State.User.ID != sess.State.User.ID {
 		return
 	}
 	n.voiceStates.Store(evt.GuildID, evt.VoiceState)
 }
 
-func (n *Node) OnVoiceServerUpdate(sess *discordgo.Session, evt *discordgo.VoiceServerUpdate) {
+func (n *Node) onVoiceServerUpdate(sess *discordgo.Session, evt *discordgo.VoiceServerUpdate) {
 	vsI, exists := n.voiceStates.Load(evt.GuildID)
 	if !exists {
 		return

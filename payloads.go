@@ -2,6 +2,26 @@ package lavago
 
 import "time"
 
+const (
+	trackStartEvent      = "TrackStartEvent"
+	trackEndEvent        = "TrackEndEvent"
+	trackExceptionEvent  = "TrackExceptionEvent"
+	trackStuckEvent      = "TrackStuckEvent"
+	webSocketClosedEvent = "WebSocketClosedEvent"
+)
+
+type recvDataEventPayload struct {
+	Op          string `json:"op,omitempty"`
+	GuildID     string `json:"guildId,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Track       string `json:"track,omitempty"`
+	Reason      string `json:"reason,omitempty"`
+	Error       string `json:"error,omitempty"`
+	ThresholdMs int    `json:"thresholdMs,omitempty"`
+	Code        int    `json:"code,omitempty"`
+	ByRemote    bool   `json:"byRemote,omitempty"`
+}
+
 type basePayload struct {
 	Op      string `json:"op,omitempty"`
 	GuildID string `json:"guildId,omitempty"`
