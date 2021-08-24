@@ -231,9 +231,9 @@ func (n *Node) Search(stype SearchType, query string) (*SearchResult, error) {
 	case YouTube:
 		urlPath = "/loadtracks?identifier=ytsearch:" + url.QueryEscape(query)
 	case Direct:
-		urlPath = "/loadtracks?identifier=" + query
+		urlPath = "/loadtracks?identifier=" + url.QueryEscape(query)
 	default:
-		urlPath = "/loadtracks?identifier=" + query
+		urlPath = "/loadtracks?identifier=" + url.QueryEscape(query)
 	}
 	req, err := http.NewRequest("GET", n.cfg.httpEndpoint()+urlPath, nil)
 	if err != nil {
