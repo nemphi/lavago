@@ -21,7 +21,7 @@ type PlayerUpdatedEvent struct {
 	State struct {
 		// Track's current position
 		Position time.Duration `json:"position,omitempty"`
-		Time     time.Time     `json:"time,omitempty"`
+		Time     int64         `json:"time,omitempty"`
 	} `json:"state,omitempty"`
 }
 
@@ -321,7 +321,7 @@ func (n *Node) socketDataReceived(data []byte) {
 			break
 		}
 		p.Track.updatePosition(pu.State.Position)
-		p.LastUpdate = pu.State.Time
+		p.LastUpdate = time.Unix(pu.State.Time, 0)
 		if n.PlayerUpdated == nil {
 			break
 		}
