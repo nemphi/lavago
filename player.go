@@ -217,6 +217,7 @@ func (p *Player) Skip(delay time.Duration) (skipped *Track, current *Track, err 
 	skipped = p.Track
 	currentI, exists := p.Queue.Get(0)
 	if !exists {
+		p.Unlock()
 		return skipped, nil, nil
 	}
 	p.Queue.Remove(0)
