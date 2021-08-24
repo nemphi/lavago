@@ -73,7 +73,7 @@ func (s *Socket) Connect(headers http.Header) error {
 	}
 	s.conn = conn
 	s.connected = true
-	s.OnOpen()
+	go s.OnOpen()
 	go s.sendListener()
 	go s.readListener()
 	return nil
