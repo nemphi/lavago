@@ -18,8 +18,9 @@ type PlayerUpdatedEvent struct {
 	Track *Track `json:"track,omitempty"`
 	State struct {
 		// Track's current position
-		Position time.Duration `json:"position,omitempty"`
-		Time     int64         `json:"time,omitempty"`
+		Position  time.Duration `json:"position,omitempty"`
+		Time      int64         `json:"time,omitempty"`
+		Connected bool          `json:"connected,omitempty"`
 	} `json:"state,omitempty"`
 }
 
@@ -149,6 +150,7 @@ func (n *Node) Connect(userID, shardCount string) error {
 	headers.Add("User-Id", userID)
 	headers.Add("Num-Shards", shardCount)
 	headers.Add("Authorization", n.cfg.Authorization)
+	headers.Add("Client-Name", "Lavago")
 	if n.cfg.EnableResume {
 		headers.Add("Resume-Key", n.cfg.ResumeKey)
 	}
