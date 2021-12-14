@@ -230,13 +230,13 @@ func (p *Player) Skip(delay time.Duration) (skipped *Track, current *Track, err 
 	return
 }
 
-// Seeks the current track to specified position.
-func (p *Player) Seek(position time.Duration) error {
+// Seeks the current track to specified position in milliseconds.
+func (p *Player) Seek(position int) error {
 	if p.State == PlayerStateNone {
 		return errors.New("player's current state is set to None. Please make sure Player is connected to a voice channel")
 	}
 	if position > p.Track.Info.Length {
-		return fmt.Errorf("value must not be higer than %s", p.Track.Info.Length.String())
+		return fmt.Errorf("value must not be higer than %v", p.Track.Info.Length)
 	}
 	data, err := json.Marshal(playerSeekPayload{
 		Op:       "seek",

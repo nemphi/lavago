@@ -68,9 +68,9 @@ type playerPausePayload struct {
 }
 
 type playerSeekPayload struct {
-	Op       string        `json:"op,omitempty"`
-	GuildID  string        `json:"guildId,omitempty"`
-	Position time.Duration `json:"position,omitempty"`
+	Op       string `json:"op,omitempty"`
+	GuildID  string `json:"guildId,omitempty"`
+	Position int    `json:"position,omitempty"`
 }
 
 type playerVolumePayload struct {

@@ -18,9 +18,9 @@ type PlayerUpdatedEvent struct {
 	Track *Track `json:"track,omitempty"`
 	State struct {
 		// Track's current position
-		Position  time.Duration `json:"position,omitempty"`
-		Time      int64         `json:"time,omitempty"`
-		Connected bool          `json:"connected,omitempty"`
+		Position  int   `json:"position,omitempty"`
+		Time      int64 `json:"time,omitempty"`
+		Connected bool  `json:"connected,omitempty"`
 	} `json:"state,omitempty"`
 }
 

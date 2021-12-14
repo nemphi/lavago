@@ -1,7 +1,5 @@
 package lavago
 
-import "time"
-
 // Track information.
 type Track struct {
 	// Track's encoded hash.
@@ -19,17 +17,17 @@ type TrackInfo struct {
 	// Whether the track is seekable.
 	CanSeek bool `json:"isSeekable,omitempty"`
 	// Track's length.
-	Length time.Duration `json:"length,omitempty"`
+	Length int `json:"length,omitempty"`
 	//  Whether the track is a stream.
 	IsStream bool `json:"is_stream,omitempty"`
 	// Track's current position.
-	Position time.Duration `json:"position,omitempty"`
+	Position int `json:"position,omitempty"`
 	// Track's url.
 	URL string `json:"uri,omitempty"`
 	// Name of the source
 	SourceName string `json:"sourceName,omitempty"`
 }
 
-func (t *Track) updatePosition(pos time.Duration) {
+func (t *Track) updatePosition(pos int) {
 	t.Info.Position = pos
 }
