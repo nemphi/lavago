@@ -321,7 +321,9 @@ func (n *Node) socketDataReceived(data []byte) {
 		if p == nil {
 			break
 		}
-		p.Track.updatePosition(pu.State.Position)
+		if p.Track != nil {
+			p.Track.updatePosition(pu.State.Position)
+		}
 		p.LastUpdate = time.Unix(pu.State.Time, 0)
 		if n.PlayerUpdated == nil {
 			break
