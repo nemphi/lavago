@@ -26,6 +26,8 @@ type TrackInfo struct {
 	Position time.Duration `json:"position,omitempty"`
 	// Track's url.
 	URL string `json:"uri,omitempty"`
+	// Name of the source
+	SourceName string `json:"sourceName,omitempty"`
 }
 
 func (t *Track) updatePosition(pos time.Duration) {
