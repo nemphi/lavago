@@ -76,7 +76,7 @@ type playerSeekPayload struct {
 type playerVolumePayload struct {
 	Op      string `json:"op,omitempty"`
 	GuildID string `json:"guildId,omitempty"`
-	Volume  int    `json:"position,omitempty"`
+	Volume  int    `json:"volume,omitempty"`
 }
 
 type playerDestroyPayload struct {
